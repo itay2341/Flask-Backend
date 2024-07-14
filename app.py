@@ -4,11 +4,7 @@ from models import db, Message
 from openai import OpenAI
 import os
 
-
-if os.getenv('FLASK_ENV') == 'docker':
-    load_dotenv('.env.docker')
-else:
-    load_dotenv('.env.local')
+load_dotenv('.env.docker' if os.getenv('FLASK_ENV') == 'docker' else '.env.local')
 
 app = Flask(__name__)
 
@@ -19,28 +15,24 @@ db.init_app(app)
 
 @app.route('/ask', methods=['POST'])
 def ask_question():
-    try:
-        question = request.json['question']
-    except:
+    if not request.json or 'question' not in request.json:
         return jsonify({'error': 'Invalid request'}), 400
+    
+    question = request.json['question']
     
     try:
         client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-
-        chat_history = Message.query.all()
-        messages = [chat.to_dict() for chat in chat_history]
-        messages.append({"role": "user", "content": question})
+        chat_history = Message.get_all_messages_sorted_by_created_time()
+        chat_history.append({"role": "user", "content": question})
 
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=messages,
-            max_tokens=40
+            messages=chat_history
         )
         answer = response.choices[0].message.content.strip()
 
-        db.session.add(Message(role="user", content=question))
-        db.session.add(Message(role="assistant", content=answer))
-        db.session.commit()
+        Message(role="user", content=question).save()
+        Message(role="assistant", content=answer).save()
 
         return jsonify({'question': question, 'answer': answer}), 200
     
