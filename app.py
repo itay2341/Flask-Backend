@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
+from openai import OpenAI
 import os
 
 
@@ -18,7 +19,24 @@ def ask_question():
     except:
         return jsonify({'error': 'Invalid request'}), 400
     
-    return jsonify({'question': question, 'answer': 'answer'}), 200
+    try:
+        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": question}
+            ],
+            max_tokens=40
+        )
+        answer = response.choices[0].message.content.strip()
+
+        return jsonify({'question': question, 'answer': answer})
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 
 if __name__ == '__main__':
