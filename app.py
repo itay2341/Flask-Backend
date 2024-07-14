@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
-from models import db, Massage
+from models import db, Message
 from openai import OpenAI
 import os
 
@@ -27,7 +27,7 @@ def ask_question():
     try:
         client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
-        chat_history = Massage.query.all()
+        chat_history = Message.query.all()
         messages = [chat.to_dict() for chat in chat_history]
         messages.append({"role": "user", "content": question})
 
@@ -38,8 +38,8 @@ def ask_question():
         )
         answer = response.choices[0].message.content.strip()
 
-        db.session.add(Massage(role="user", content=question))
-        db.session.add(Massage(role="assistant", content=answer))
+        db.session.add(Message(role="user", content=question))
+        db.session.add(Message(role="assistant", content=answer))
         db.session.commit()
 
         return jsonify({'question': question, 'answer': answer}), 200
