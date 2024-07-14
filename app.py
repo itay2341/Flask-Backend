@@ -32,7 +32,7 @@ def ask_question():
         )
         answer = response.choices[0].message.content.strip()
 
-        return jsonify({'question': question, 'answer': answer})
+        return jsonify({'question': question, 'answer': answer}), 200
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
