@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
+from models import db, Massage
 from openai import OpenAI
 import os
 
@@ -10,6 +11,14 @@ else:
     load_dotenv('.env.local')
 
 app = Flask(__name__)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+
+@app.before_request
+def create_tables():
+    db.create_all()
 
 
 @app.route('/ask', methods=['POST'])
@@ -22,15 +31,20 @@ def ask_question():
     try:
         client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
+        chat_history = Massage.query.all()
+        messages = [chat.to_dict() for chat in chat_history]
+        messages.append({"role": "user", "content": question})
+
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": question}
-            ],
+            messages=messages,
             max_tokens=40
         )
         answer = response.choices[0].message.content.strip()
+
+        db.session.add(Massage(role="user", content=question))
+        db.session.add(Massage(role="assistant", content=answer))
+        db.session.commit()
 
         return jsonify({'question': question, 'answer': answer}), 200
     
