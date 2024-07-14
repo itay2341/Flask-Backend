@@ -16,10 +16,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
-@app.before_request
-def create_tables():
-    db.create_all()
-
 
 @app.route('/ask', methods=['POST'])
 def ask_question():
