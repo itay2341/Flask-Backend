@@ -34,13 +34,14 @@ def test_remember_conversation(client):
     assert response.status_code == 200, "The response should be a success"
 
     # Ask the chatbot to remember the last question
-    response = client.post('/ask', json={'question': 'What the last question I asked you? (please quote me)'})
+    response = client.post('/ask', json={'question': 'What is the last question I asked you? (please quote me)'})
     assert response.status_code == 200, "The response should be a success" 
     data = response.get_json()
-    assert 'what is ai' in data['answer'].lower()
+    assert 'what is ai' in data['answer'].lower(), "The answer should be 'What is AI?'"
 
+    # Ask the chatbot to remember the question before the last question
     response = client.post('/ask', json={'question': 'What did I ask you before that question? (please quote me)'})
     assert response.status_code == 200, "The response should be a success"
     data = response.get_json()
-    assert 'what is the capital of israel' in data['answer'].lower()
+    assert 'what is the capital of israel' in data['answer'].lower(), "The answer should be 'What is the capital of Israel?'"
 
