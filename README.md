@@ -93,6 +93,12 @@ It includes SQLAlchemy for database management, Alembic for migrations, Docker f
     docker-compose exec web alembic upgrade head
     ```
 
+
+3. **Make POST requests to `http://127.0.0.1:5000/ask`. For example:**
+    ```bash
+    curl -X POST http://127.0.0.1:5000/ask -d '{"question": "What is the capital of France?"}' -H "Content-Type: application/json"
+    ```
+
 ## Testing the Application
 
 1. **Run the tests locally:**
