@@ -5,10 +5,7 @@ from dotenv import load_dotenv
 from models import db
 import os
 
-if os.getenv('FLASK_ENV') == 'docker':
-    load_dotenv('.env.docker')
-else:
-    load_dotenv('.env.local')
+load_dotenv('.env.docker' if os.getenv('FLASK_ENV') == 'docker' else '.env.local')
 
 config = context.config
 fileConfig(config.config_file_name)
